@@ -1,12 +1,30 @@
+String registry = System.getenv('REGISTRY')
+String repository = System.getenv('REPOSITORY')
+String image_tag = System.getenv('IMAGE_TAG')
+String ecr_image_tag = "${registry}/${repository}:${image_tag}"
+
 tasks.register('build_image') {
     group = 'building-nginx'
     doLast{
-        dockerBuild()
+        dockerImageBuild(ecr_image_tag)
     }
 }
 
-def dockerBuild() {
+tasks.register('push_image') {
+    group = 'building-nginx'
+    doLast{
+        dockerPushToECR(ecr_image_tag)
+    }
+}
+
+def dockerImageBuild(String ecr_image_tag) {
     exec {
-        commandLine 'docker', 'build', '.', '-t', 'custom-nginx'
+        commandLine 'docker', 'build', '.', '-t', ecr_image_tag
+    }
+}
+
+def dockerPushToECR(String ecr_image_tag) {
+    exec {
+        commandLine 'docker', 'push', ecr_image_tag
     }
 }
